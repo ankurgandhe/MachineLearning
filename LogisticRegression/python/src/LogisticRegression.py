@@ -56,33 +56,16 @@ class LogisticRegression:
         conv = False 
         iter= 0
         oldLogL = -1e10
-        TotalError= numpy.zeros(self.NumberFeats)	
-
+        
         while(not conv):
             iter = iter+1
             LogL = 0.0
             for i in range(n_train_batches):
-                TotalError.fill(0)
-                biasError = 0
+        
 
                 #Get batch error 
-                for X,Y in zip(DataX[i*batch_size:(i+1)*batch_size], DataY[i*batch_size:(i+1)*batch_size]):
-                    sumWx = numpy.dot(self.W,X) + self.b*bias
-                    
-                    probY0 = 1 / (1 + numpy.exp(sumWx));
-                    probY1 = 1 - probY0
-                    y_error  = Y - probY1;
-                    LogL = LogL + numpy.log10(Y*probY1 + (1-Y)*probY0)
-                    
-                    TotalError = TotalError + X*y_error
-                    biasError = biasError + bias*y_error
-                
-                #Update W 
-                WNew = self.W + eta0 * (TotalError - L2lambda * self.W  )
-                bNew = self.b + eta0 * (biasError - L2lambda * self.b )
-                self.W = WNew
-                self.b = bNew 
-                
+                LogL = LogL + self.update(DataX[i*batch_size:(i+1)*batch_size], bias, DataY[i*batch_size:(i+1)*batch_size],eta0,L2lambda)
+        
             DiffLogL = LogL - oldLogL
             
             if DiffLogL < self.epsilon:
@@ -95,6 +78,30 @@ class LogisticRegression:
         print >> sys.stderr, "Logistic regression training complete."
         print >> sys.stderr, self.W,self.b
     
+    def update(self,DataX,biasX,DataY,eta0,L2lambda): #Returns LogL 
+        LogL=0
+        TotalError= numpy.zeros(self.NumberFeats)
+	TotalError.fill(0)
+        biasError = 0
+
+        for X,Y in zip(DataX, DataY):
+            sumWx = numpy.dot(self.W,X) + self.b*biasX
+            
+            probY0 = 1 / (1 + numpy.exp(sumWx));
+            probY1 = 1 - probY0
+            y_error  = Y - probY1;
+            LogL = LogL + numpy.log10(Y*probY1 + (1-Y)*probY0)
+            
+            TotalError = TotalError + X*y_error
+            biasError = biasError + biasX*y_error
+            
+            #Update W
+        WNew = self.W + eta0 * (TotalError - L2lambda * self.W  )
+        bNew = self.b + eta0 * (biasError - L2lambda * self.b )
+        self.W = WNew
+        self.b = bNew
+        return LogL 
+
     def TestLR(self,DataX):
         PredY=[]
         for X in DataX:
