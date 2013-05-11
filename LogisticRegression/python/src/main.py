@@ -17,6 +17,7 @@ if __name__ == '__main__':
     parser.add_argument("-r", "--learningrate", type=float, default='0.1', help="Learning rate for gradient ascent")
     parser.add_argument("-e", "--convergence", type=float, default='1e-4', help="Convergence condition")
     parser.add_argument("-v", "--verbosity", type=int, default=0, help="Verbosity level")
+    parser.add_argument("-z", "--algorithm", type=str, default="gd", help="Algorithm to be used: gd : gradient descent, cg:conjugate descent")
 
     args = parser.parse_args()
     if not args.trainfile:	
@@ -29,12 +30,14 @@ if __name__ == '__main__':
     b = bool(args.bias)
     learning_rate = args.learningrate
     epsilon = args.convergence
+    algorithm = args.algorithm
     
     Data,labels,LabelMap,n_feats = ReadFeatureFile(trainFile)
 
     LR = LogisticRegression(n_feat=n_feats,epsilon=epsilon,eta=learning_rate,bias=b)
     LR.AssignLabel(LabelMap)
-    LR.TrainLogisticRegression(X=Data,Y=labels,batch_size=batch_size,L1=L1_reg,L2=L2_reg)
+
+    LR.TrainLogisticRegression(X=Data,Y=labels,batch_size=batch_size,L1=L1_reg,L2=L2_reg,algo=algorithm)
     if args.testfile:
         TestData,Testlabels,labelMap,nfeat = ReadFeatureFile(args.testfile)
         Y = LR.TestLR(TestData)
